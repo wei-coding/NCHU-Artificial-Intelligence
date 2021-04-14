@@ -30,18 +30,6 @@ class Node:
     def __le__(self, other):
         return self.F <= other.F
 
-    def straight_to(self, other):
-        if (self.POS[0] - other.POS[0]) ** 2 + (self.POS[1] - other.POS[1]) ** 2 == 2:
-            return False
-        else:
-            return True
-
-    def is_near_by(self, other):
-        if (self.POS[0] - other.POS[0]) ** 2 + (self.POS[1] - other.POS[1]) ** 2 <= 2:
-            return True
-        else:
-            return False
-
 
 class StartNode(Node):
     F = 0
@@ -79,7 +67,7 @@ def a_star(start_pos, end_pos, map_: list):
             else:
                 guess_better = False
             if guess_better:
-                print(f'from {x.POS} to {y.POS}')
+                # print(f'from {x.POS} to {y.POS}')
                 y.FROM = x
                 y.G = guess_g
                 y.H = _distance(y, end_pos)
@@ -141,27 +129,68 @@ def print_node_list(l: list):
 
 
 def main():
-    exam_map = [
-        [0, 0, 0, 0, 0, 0],
-        [0, 0, 0, 0, 1, 1],
-        [0, 0, 0, 0, 0, 0],
-        [1, 1, 1, 1, 0, 0],
-        [1, 0, 0, 0, 0, 1],
-        [0, 0, 0, 0, 0, 1]
-    ]
+    map_str = '''
+        S 0 0 0 0 0
+        0 # # # # #
+        0 0 0 0 0 0
+        # 0 # # 0 #
+        # 0 0 0 # #
+        0 0 E 0 0 #
     '''
-    exam_map = [
-        [0, 0, 0, 0, 0, 0, 0],
-        [0, 0, 0, 1, 0, 0, 0],
-        [0, 0, 0, 1, 0, 0, 0],
-        [0, 0, 0, 1, 0, 0, 0],
-        [0, 0, 0, 0, 0, 0, 0],
-    ]
-    '''
-    start_pos = StartNode(0, 0)
-    end_pos = Node(5, 2)
+    exam_map, start_pos, end_pos = maps_to_array(map_str)
+    print('Map looks like this:')
+    for row in exam_map:
+        for item in row:
+            print(item, end=' ')
+        print()
+    print()
     route = a_star(start_pos, end_pos, exam_map)
-    print_node_list(route)
+    for row in range(len(exam_map)):
+        for col in range(len(exam_map[row])):
+            if Node(row, col) in route:
+                print('*', end=' ')
+            else:
+                print(exam_map[row][col], end=' ')
+        print()
+
+
+class StringConvertToArrayFailedException(Exception):
+    pass
+
+
+def maps_to_array(s: str):
+    map_ = []
+    lines = s.strip().split('\n')
+    line_count = 0
+    char_count = 0
+    start_pos = None
+    end_pos = None
+    for line in lines:
+        line_arr = []
+        for char in line:
+            if char == 'S':
+                start_pos = StartNode(line_count, char_count)
+                line_arr.append(0)
+                char_count += 1
+            elif char == 'E':
+                end_pos = Node(line_count, char_count)
+                char_count += 1
+                line_arr.append(0)
+                char_count += 1
+            elif char == '0':
+                line_arr.append(0)
+                char_count += 1
+            elif char == '#':
+                line_arr.append(1)
+                char_count += 1
+            else:
+                pass
+        map_.append(line_arr)
+        char_count = 0
+        line_count += 1
+    if start_pos is None or end_pos is None:
+        raise StringConvertToArrayFailedException()
+    return map_, start_pos, end_pos
 
 
 if __name__ == '__main__':
